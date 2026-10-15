@@ -1,0 +1,2030 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>OmniFlow v4.0 — Windows Native, Browser & Polyglot Automation Studio</title>
+<style>
+  :root {
+    --bg-app: #090d16;
+    --bg-surface: #111827;
+    --bg-elevated: #1e293b;
+    --bg-input: #0b1120;
+    --border: #26334d;
+    --border-focus: #38bdf8;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --blue: #38bdf8;
+    --indigo: #6366f1;
+    --emerald: #10b981;
+    --amber: #f59e0b;
+    --rose: #f43f5e;
+    --purple: #a855f7;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Cascadia Code', Consolas, monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg-app);
+    color: var(--text-primary);
+    font-family: var(--font-sans);
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ==========================================================================
+     TOP NAVIGATION BAR
+     ========================================================================== */
+  .navbar {
+    height: 56px;
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    gap: 16px;
+    z-index: 30;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+  }
+
+  .brand-badge {
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    background: linear-gradient(135deg, var(--indigo), var(--blue));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(56, 189, 248, 0.3);
+  }
+
+  .brand-name { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+  .brand-tag { font-size: 11px; color: var(--text-secondary); display: block; }
+
+  /* Segmented View Tabs */
+  .nav-tabs {
+    display: flex;
+    background: var(--bg-input);
+    padding: 4px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    gap: 4px;
+  }
+
+  .nav-tab {
+    background: transparent;
+    color: var(--text-secondary);
+    border: none;
+    padding: 6px 13px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .nav-tab:hover { color: var(--text-primary); }
+  .nav-tab.active {
+    background: var(--bg-elevated);
+    color: var(--blue);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  }
+
+  /* Right Action Bar */
+  .nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .engine-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .engine-pill.online {
+    background: rgba(16, 185, 129, 0.12);
+    border: 1px solid rgba(16, 185, 129, 0.4);
+    color: #6ee7b7;
+  }
+
+  .engine-pill.starting {
+    background: rgba(245, 158, 11, 0.14);
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    color: #fcd34d;
+  }
+
+  .engine-pill.offline {
+    background: rgba(244, 63, 94, 0.15);
+    border: 1px solid rgba(244, 63, 94, 0.45);
+    color: #fda4af;
+  }
+
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+
+  .btn {
+    background: var(--bg-elevated);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 7px 13px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+  }
+
+  .btn:hover { background: #283548; border-color: #475569; }
+  .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+  .btn-run {
+    background: linear-gradient(135deg, #059669, #10b981);
+    border-color: #059669;
+    color: #fff;
+    box-shadow: 0 2px 12px rgba(16, 185, 129, 0.3);
+  }
+  .btn-run:hover { background: linear-gradient(135deg, #047857, #059669); }
+
+  .btn-indigo {
+    background: linear-gradient(135deg, #4f46e5, #6366f1);
+    border-color: #4f46e5;
+    color: #fff;
+  }
+
+  .btn-danger {
+    background: rgba(244, 63, 94, 0.12);
+    border-color: rgba(244, 63, 94, 0.4);
+    color: #fda4af;
+  }
+
+  /* ==========================================================================
+     VIEW CONTAINERS
+     ========================================================================== */
+  .view-pane {
+    flex: 1;
+    display: none;
+    overflow: hidden;
+  }
+  .view-pane.active {
+    display: flex;
+  }
+
+  /* ==========================================================================
+     VIEW 1: VISUAL WORKFLOW BUILDER (3-COLUMN STUDIO)
+     ========================================================================== */
+  .builder-grid {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 275px 1fr 410px;
+    overflow: hidden;
+  }
+
+  /* Left Node Toolbox */
+  .toolbox {
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .group-header {
+    font-size: 10.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-secondary);
+    margin-bottom: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .tool-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .tool-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-left: 3.5px solid var(--blue);
+    border-radius: 7px;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease;
+  }
+  .tool-card:hover { transform: translateX(3px); background: #263449; }
+  .tool-card[data-cat="windows"] { border-left-color: var(--blue); }
+  .tool-card[data-cat="polyglot"] { border-left-color: var(--purple); }
+  .tool-card[data-cat="browser"] { border-left-color: var(--amber); }
+  .tool-card[data-cat="vision"] { border-left-color: var(--rose); }
+  .tool-card[data-cat="database"] { border-left-color: var(--indigo); }
+
+  .tool-title {
+    font-size: 12px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2px;
+  }
+  .tool-desc { font-size: 10.5px; color: var(--text-secondary); }
+
+  .tag {
+    font-size: 9.5px;
+    font-family: var(--font-mono);
+    padding: 1px 5px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+  }
+
+  /* Center Canvas + Bottom Output Console */
+  .canvas-column {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #070b12;
+  }
+
+  .canvas-toolbar {
+    height: 44px;
+    background: rgba(17, 24, 39, 0.9);
+    border-bottom: 1px solid var(--border);
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .wf-name-box {
+    background: var(--bg-input);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 13px;
+    font-weight: 600;
+    width: 260px;
+    outline: none;
+  }
+  .wf-name-box:focus { border-color: var(--border-focus); }
+
+  .canvas-viewport {
+    flex: 1;
+    position: relative;
+    overflow: auto;
+    background-image:
+      radial-gradient(rgba(148, 163, 184, 0.14) 1px, transparent 1px),
+      radial-gradient(rgba(148, 163, 184, 0.05) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: 0 0, 12px 12px;
+    user-select: none;
+  }
+
+  .canvas-surface {
+    position: relative;
+    width: 2000px;
+    height: 1100px;
+  }
+
+  svg.edge-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .edge-line {
+    fill: none;
+    stroke: #475569;
+    stroke-width: 2.5px;
+    pointer-events: stroke;
+    cursor: pointer;
+    transition: stroke 0.15s ease;
+  }
+  .edge-line:hover { stroke: var(--rose); stroke-width: 3.5px; }
+  .edge-line.temp-wire { stroke: var(--blue); stroke-dasharray: 6 4; pointer-events: none; }
+
+  /* Node Cards on Canvas */
+  .node-card {
+    position: absolute;
+    width: 240px;
+    background: rgba(30, 41, 59, 0.96);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    z-index: 5;
+    cursor: grab;
+    user-select: none;
+  }
+  .node-card:active { cursor: grabbing; }
+  .node-card.selected {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 2.5px rgba(56, 189, 248, 0.32), 0 10px 28px rgba(0, 0, 0, 0.6);
+  }
+  .node-card.running { border-color: var(--amber); box-shadow: 0 0 18px rgba(245, 158, 11, 0.5); }
+  .node-card.completed { border-color: var(--emerald); box-shadow: 0 0 14px rgba(16, 185, 129, 0.35); }
+  .node-card.failed { border-color: var(--rose); box-shadow: 0 0 16px rgba(244, 63, 94, 0.5); }
+
+  .node-head {
+    padding: 7px 11px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 8px 8px 0 0;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .node-card[data-cat="windows"] .node-head { background: rgba(56, 189, 248, 0.16); color: #7dd3fc; }
+  .node-card[data-cat="polyglot"] .node-head { background: rgba(168, 85, 247, 0.18); color: #d8b4fe; }
+  .node-card[data-cat="browser"] .node-head { background: rgba(245, 158, 11, 0.16); color: #fcd34d; }
+  .node-card[data-cat="vision"] .node-head { background: rgba(244, 63, 94, 0.18); color: #fda4af; }
+  .node-card[data-cat="database"] .node-head { background: rgba(99, 102, 241, 0.2); color: #c7d2fe; }
+
+  .node-body { padding: 10px 12px; }
+  .node-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .node-sub {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .node-badge-status {
+    margin-top: 6px;
+    font-size: 10.5px;
+    font-family: var(--font-mono);
+    display: none;
+  }
+  .node-card.completed .node-badge-status { display: block; color: var(--emerald); }
+  .node-card.running .node-badge-status { display: block; color: var(--amber); }
+  .node-card.failed .node-badge-status { display: block; color: var(--rose); }
+
+  /* Connection Ports */
+  .port {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    border: 2.5px solid #94a3b8;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: crosshair;
+    z-index: 10;
+    transition: transform 0.12s ease, background 0.12s ease;
+  }
+  .port:hover, .port.wiring {
+    transform: translateY(-50%) scale(1.35);
+    background: var(--blue);
+    border-color: #fff;
+  }
+  .port-in { left: -8px; }
+  .port-out { right: -8px; }
+
+  /* Bottom Telemetry & Context Drawer */
+  .bottom-console {
+    height: 205px;
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border);
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    overflow: hidden;
+  }
+
+  .console-col {
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border-right: 1px solid var(--border);
+  }
+
+  .console-head {
+    padding: 6px 12px;
+    background: rgba(11, 17, 32, 0.75);
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .log-stream {
+    flex: 1;
+    padding: 8px 12px;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+  .log-item { margin-bottom: 4px; word-break: break-word; }
+  .log-ts { color: var(--text-muted); margin-right: 6px; }
+
+  .ctx-json {
+    flex: 1;
+    padding: 8px 12px;
+    overflow-y: auto;
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: #6ee7b7;
+    background: #070b14;
+    white-space: pre-wrap;
+  }
+
+  /* Right Step Inspector (Glitch-Free Form Controls!) */
+  .inspector {
+    background: var(--bg-surface);
+    border-left: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+  }
+
+  .form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .form-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .input, .select, .textarea {
+    background: var(--bg-input);
+    color: var(--text-primary);
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 8px 11px;
+    font-size: 12.5px;
+    font-family: var(--font-sans);
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  .input:focus, .select:focus, .textarea:focus {
+    border-color: var(--border-focus);
+  }
+
+  .textarea-code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    line-height: 1.5;
+    min-height: 160px;
+    resize: vertical;
+    background: #060911;
+  }
+
+  .card-box {
+    background: rgba(11, 17, 32, 0.7);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-primary);
+    cursor: pointer;
+  }
+
+  /* ==========================================================================
+     FULL-SCREEN TAB VIEWS (SAVED WORKFLOWS, HISTORY, SETTINGS & AUTO-START)
+     ========================================================================== */
+  .page-container {
+    max-width: 980px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 28px 24px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .page-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .list-row {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+</style>
+</head>
+<body>
+
+  <!-- Hidden iframe used to trigger omniflow://start custom URL protocol to auto-start the local Python server -->
+  <iframe id="protocolLauncherFrame" style="display:none;" src="about:blank"></iframe>
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="navbar">
+    <div class="brand">
+      <div class="brand-badge">OF</div>
+      <div>
+        <span class="brand-name">OmniFlow Studio v4.0</span>
+        <span class="brand-tag">Auto-Start Server • Bulletproof Win32 Notepad/UIA • Polyglot Engine</span>
+      </div>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="switchTab('builder', this)">1. Visual Workflow Builder</button>
+      <button class="nav-tab" onclick="switchTab('library', this)">2. Saved Workflows & Templates</button>
+      <button class="nav-tab" onclick="switchTab('spy', this)">3. Live Win32 Window Spy</button>
+      <button class="nav-tab" onclick="switchTab('settings', this)">4. Settings & Auto-Start Setup</button>
+    </div>
+
+    <div class="nav-actions">
+      <span id="engineStatusPill" class="engine-pill starting" onclick="attemptAutoStartServer(true)" title="Click to wake or check local Python server">
+        <span class="dot"></span>
+        <span id="engineStatusText">Starting Server...</span>
+      </span>
+      <button id="runWorkflowBtn" class="btn btn-run" onclick="runFullWorkflow()">▶ Run Full Workflow</button>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       TAB 1: VISUAL WORKFLOW BUILDER
+       ======================================================================== -->
+  <section id="tab-builder" class="view-pane active">
+    <div class="builder-grid">
+
+      <!-- LEFT TOOLBOX -->
+      <aside class="toolbox">
+        <div>
+          <div class="group-header">
+            <span>★ My Saved Templates</span>
+            <span style="color:var(--blue);cursor:pointer;" onclick="saveCurrentStepAsTemplate()">+ Save Step</span>
+          </div>
+          <div id="savedTemplatesToolbox" class="tool-list"></div>
+        </div>
+
+        <div>
+          <div class="group-header"><span>Windows Native (Win32 / UIA)</span><span>OS</span></div>
+          <div class="tool-list">
+            <div class="tool-card" data-cat="windows" onclick="addStep('windows', 'win_type', 'Write Text to Notepad / App')">
+              <div class="tool-title">Write Text to Notepad / App <span class="tag">Win32</span></div>
+              <div class="tool-desc">Auto-opens Notepad & writes text directly into editor</div>
+            </div>
+            <div class="tool-card" data-cat="windows" onclick="addStep('windows', 'win_launch', 'Launch Application (.exe)')">
+              <div class="tool-title">Launch Application <span class="tag">.exe</span></div>
+              <div class="tool-desc">Open notepad.exe, calc.exe, or custom binary</div>
+            </div>
+            <div class="tool-card" data-cat="windows" onclick="addStep('windows', 'win_find_window', 'Focus Desktop Window')">
+              <div class="tool-title">Focus Window <span class="tag">HWND</span></div>
+              <div class="tool-desc">Bring window to front by Title or ClassName</div>
+            </div>
+            <div class="tool-card" data-cat="windows" onclick="addStep('windows', 'win_click', 'Click Screen (X, Y) / UIA')">
+              <div class="tool-title">Click Control / Coords <span class="tag">Click</span></div>
+              <div class="tool-desc">Click screen coordinates or UIA control name</div>
+            </div>
+            <div class="tool-card" data-cat="windows" onclick="addStep('windows', 'win_clipboard', 'Clipboard Copy / Read')">
+              <div class="tool-title">Windows Clipboard <span class="tag">Clip</span></div>
+              <div class="tool-desc">Read or write Windows Clipboard text</div>
+            </div>
+            <div class="tool-card" data-cat="windows" onclick="addStep('windows', 'win_registry', 'Registry Read / Write')">
+              <div class="tool-title">Windows Registry <span class="tag">Reg</span></div>
+              <div class="tool-desc">Read or write HKCU / HKLM registry keys</div>
+            </div>
+            <div class="tool-card" data-cat="windows" onclick="addStep('windows', 'win_schedule_task', 'Windows Task Scheduler')">
+              <div class="tool-title">Task Scheduler <span class="tag">Cron</span></div>
+              <div class="tool-desc">Schedule workflow via Windows schtasks.exe</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="group-header"><span>Polyglot Scripts (Shared ctx)</span><span>CODE</span></div>
+          <div class="tool-list">
+            <div class="tool-card" data-cat="polyglot" onclick="addStep('polyglot', 'script_python', 'Python 3 Script')">
+              <div class="tool-title">Python 3 Script <span class="tag">.py</span></div>
+              <div class="tool-desc">Read ctx['variables'] & call omniflow_set()</div>
+            </div>
+            <div class="tool-card" data-cat="polyglot" onclick="addStep('polyglot', 'script_powershell', 'PowerShell Script')">
+              <div class="tool-title">PowerShell Script <span class="tag">.ps1</span></div>
+              <div class="tool-desc">Run native Windows PS1 + Set-OmniFlowVar</div>
+            </div>
+            <div class="tool-card" data-cat="polyglot" onclick="addStep('polyglot', 'script_javascript', 'Node.js Script')">
+              <div class="tool-title">Node.js Script <span class="tag">.js</span></div>
+              <div class="tool-desc">Run JS code linked to shared context</div>
+            </div>
+            <div class="tool-card" data-cat="polyglot" onclick="addStep('polyglot', 'script_batch', 'Windows Batch / CMD')">
+              <div class="tool-title">Batch / CMD Script <span class="tag">.bat</span></div>
+              <div class="tool-desc">Execute native cmd.exe batch commands</div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="group-header"><span>Browser, Vision OCR & SQL</span><span>DATA</span></div>
+          <div class="tool-list">
+            <div class="tool-card" data-cat="browser" onclick="addStep('browser', 'browser_navigate', 'Open Web URL')">
+              <div class="tool-title">Open Web URL <span class="tag">Web</span></div>
+              <div class="tool-desc">Open URL in browser or Playwright CDP</div>
+            </div>
+            <div class="tool-card" data-cat="vision" onclick="addStep('vision', 'vision_find_image', 'OpenCV Find Image')">
+              <div class="tool-title">Find Image on Screen <span class="tag">CV</span></div>
+              <div class="tool-desc">Locate button image & export (X,Y)</div>
+            </div>
+            <div class="tool-card" data-cat="database" onclick="addStep('database', 'db_query', 'SQLite / ODBC Query')">
+              <div class="tool-title">SQL Database Query <span class="tag">SQL</span></div>
+              <div class="tool-desc">Run SQLite or SQL Server ODBC statements</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- CENTER CANVAS + CONSOLE -->
+      <main class="canvas-column">
+        <div class="canvas-toolbar">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:12px;color:var(--text-secondary);">Workflow:</span>
+            <input id="wfNameInput" class="wf-name-box" type="text" value="Write Data to Notepad" oninput="onWorkflowNameEdited(this.value)" />
+            <button class="btn" onclick="createBlankWorkflow()">📄 New Blank</button>
+            <button class="btn" onclick="saveWorkflowToStorage()">💾 Save Workflow</button>
+            <button class="btn" onclick="downloadWorkflowJson()">⬇ Export .json</button>
+          </div>
+          <div style="font-size:11px;color:var(--text-secondary);">
+            Drag cards to move • Click <b>Right Port → Left Port</b> to link • Click a wire to delete
+          </div>
+        </div>
+
+        <div class="canvas-viewport" id="canvasViewport">
+          <div class="canvas-surface" id="canvasSurface">
+            <svg class="edge-svg" id="edgeSvg"></svg>
+            <div id="nodesContainer"></div>
+          </div>
+        </div>
+
+        <div class="bottom-console">
+          <div class="console-col">
+            <div class="console-head">
+              <span>⚡ Live Execution Logs</span>
+              <button class="btn" style="padding:2px 8px;font-size:10.5px;" onclick="document.getElementById('logStream').innerHTML=''">Clear</button>
+            </div>
+            <div class="log-stream" id="logStream"></div>
+          </div>
+          <div class="console-col" style="border-right:none;">
+            <div class="console-head">
+              <span>🔗 Shared Context Variables (ctx.variables)</span>
+              <span style="font-size:10px;color:var(--emerald);">Live Memory</span>
+            </div>
+            <div class="ctx-json" id="ctxJsonViewer">{}</div>
+          </div>
+        </div>
+      </main>
+
+      <!-- RIGHT STEP INSPECTOR (GLITCH-FREE DEDICATED CONTROLS) -->
+      <aside class="inspector">
+        <div class="group-header">
+          <span>Step Configuration</span>
+          <span id="inspStepIdBadge" class="tag">-</span>
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Step Title</label>
+          <input id="inspStepName" class="input" type="text" oninput="onStepTitleEdited(this.value)" />
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div class="form-row">
+            <label class="form-label">Category</label>
+            <select id="inspStepCategory" class="select" onchange="onStepCategoryChanged(this.value)">
+              <option value="windows">Windows Native</option>
+              <option value="polyglot">Polyglot Script</option>
+              <option value="browser">Browser / Web</option>
+              <option value="vision">Vision & OCR</option>
+              <option value="database">SQL Database</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label class="form-label">Action Type</label>
+            <select id="inspStepAction" class="select" onchange="onStepActionChanged(this.value)">
+              <option value="win_type">win_type (Write Text to Window)</option>
+              <option value="win_launch">win_launch (Open .exe App)</option>
+              <option value="win_find_window">win_find_window (Focus Window)</option>
+              <option value="win_click">win_click (Click Coords / UIA)</option>
+              <option value="win_clipboard">win_clipboard (Clipboard)</option>
+              <option value="win_registry">win_registry (Registry)</option>
+              <option value="win_service">win_service (Windows Service)</option>
+              <option value="win_schedule_task">win_schedule_task (Task Scheduler)</option>
+              <option value="script_python">script_python (Python 3)</option>
+              <option value="script_powershell">script_powershell (PowerShell)</option>
+              <option value="script_javascript">script_javascript (Node.js)</option>
+              <option value="script_batch">script_batch (Windows Batch)</option>
+              <option value="browser_navigate">browser_navigate (Open URL)</option>
+              <option value="browser_extract">browser_extract (Scrape DOM)</option>
+              <option value="vision_find_image">vision_find_image (OpenCV Match)</option>
+              <option value="vision_ocr_extract">vision_ocr_extract (Screen OCR)</option>
+              <option value="db_query">db_query (SQLite / ODBC)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- DEDICATED GLITCH-FREE FORM CONTAINER (Rebuilt ONLY when switching nodes or action types, NEVER while typing!) -->
+        <div id="dedicatedFieldsBox" class="card-box"></div>
+
+        <!-- COLLAPSIBLE RAW JSON DRAWER FOR ADVANCED USERS -->
+        <details style="background:var(--bg-input);border:1px solid var(--border);border-radius:7px;padding:8px 10px;">
+          <summary style="font-size:11px;font-weight:600;color:var(--text-secondary);cursor:pointer;">Advanced: View / Edit Raw Step Parameters JSON</summary>
+          <textarea id="inspRawJson" class="textarea textarea-code" style="width:100%;margin-top:8px;min-height:110px;" spellcheck="false" oninput="onRawJsonEdited(this.value)"></textarea>
+        </details>
+
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+          <button id="runStepBtn" class="btn btn-run" style="justify-content:center;padding:10px;font-size:13px;" onclick="runSelectedStepOnly()">
+            ▶ Run This Step Now
+          </button>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <button class="btn" style="justify-content:center;" onclick="saveCurrentStepAsTemplate()">★ Save as Template</button>
+            <button class="btn btn-danger" style="justify-content:center;" onclick="deleteSelectedStep()">🗑 Delete Step</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       TAB 2: SAVED WORKFLOWS & REUSABLE TEMPLATES LIBRARY
+       ======================================================================== -->
+  <section id="tab-library" class="view-pane">
+    <div class="page-container">
+      <div class="page-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <h3 style="font-size:16px;">📂 Saved Workflows (Persistent Storage)</h3>
+            <p style="font-size:12px;color:var(--text-secondary);margin-top:2px;">Create, save, load, import, or delete your automation workflows.</p>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn" onclick="importWorkflowFile()">⬆ Import .json File</button>
+            <button class="btn btn-indigo" onclick="saveWorkflowToStorage(); renderLibraryTab();">💾 Save Active Workflow</button>
+          </div>
+        </div>
+        <div id="savedWorkflowsContainer" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+
+      <div class="page-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <h3 style="font-size:16px;">★ My Custom Step & Workflow Templates</h3>
+            <p style="font-size:12px;color:var(--text-secondary);margin-top:2px;">Reusable building blocks pinned to your left toolbox.</p>
+          </div>
+          <button class="btn" onclick="saveEntireWorkflowAsTemplate()">★ Save Active Workflow as Template</button>
+        </div>
+        <div id="savedTemplatesContainer" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       TAB 3: LIVE WIN32 WINDOW & MOUSE COORDINATE SPY
+       ======================================================================== -->
+  <section id="tab-spy" class="view-pane">
+    <div class="page-container">
+      <div class="page-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <h3 style="font-size:16px;">🎯 Live 3-Second Mouse Coordinate & Window Spy</h3>
+            <p style="font-size:12px;color:var(--text-secondary);margin-top:2px;">Click the button below, then hover your mouse over any Windows button or text box within 2.5 seconds.</p>
+          </div>
+          <button id="captureMouseBtn" class="btn btn-indigo" onclick="runMouseHoverSpy()">🎯 Start 2.5s Mouse Capture</button>
+        </div>
+        <div id="mouseSpyOutput" style="font-family:var(--font-mono);font-size:12.5px;padding:12px;background:var(--bg-input);border:1px solid var(--border);border-radius:8px;color:#6ee7b7;">
+          Hover capture ready.
+        </div>
+      </div>
+
+      <div class="page-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <h3 style="font-size:16px;">🪟 Open Windows Desktop Applications (Win32 EnumWindows)</h3>
+            <p style="font-size:12px;color:var(--text-secondary);margin-top:2px;">Click "Use in Selected Step" to target any running Windows application.</p>
+          </div>
+          <button class="btn" onclick="refreshWin32WindowList()">🔄 Refresh Windows List</button>
+        </div>
+        <div id="win32WindowsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================================
+       TAB 4: SETTINGS & 1-TIME AUTO-START INSTALLER
+       ======================================================================== -->
+  <section id="tab-settings" class="view-pane">
+    <div class="page-container">
+      <div class="page-card" style="border-color:rgba(56,189,248,0.45);">
+        <h3 style="font-size:16px;color:var(--blue);">⚡ Auto-Start Server Whenever You Open HTML</h3>
+        <p style="font-size:12.5px;color:var(--text-secondary);line-height:1.6;">
+          OmniFlow v4.0 registers the custom Windows URL protocol <code>omniflow://start</code> and a Windows Logon background daemon in <code>HKEY_CURRENT_USER</code>. Once enabled, whenever you double-click <code>omniflow_studio.html</code>, the browser automatically fires <code>omniflow://start</code> and launches the Python background server silently!
+        </p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-run" onclick="downloadOneClickAutoStartBat()">⬇ Download 1-Click Auto-Start Enabler (OmniFlow_AutoStart.bat)</button>
+          <button class="btn btn-indigo" onclick="triggerProtocolWake()">🔄 Wake Server via omniflow://start Now</button>
+        </div>
+        <div style="font-size:11.5px;color:var(--text-muted);font-family:var(--font-mono);">
+          Tip: Place <code>OmniFlow_AutoStart.bat</code> in the same folder as <code>omniflow_engine.py</code> and run it once (or run <code>python omniflow_engine.py</code> once). After that, opening <code>omniflow_studio.html</code> starts the server automatically every time!
+        </div>
+      </div>
+
+      <div class="page-card">
+        <h3 style="font-size:16px;">⚙ Persistent Runtime & Database Settings</h3>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+          <div class="form-row">
+            <label class="form-label">Python Executable</label>
+            <input id="cfg_py" class="input" value="python" />
+          </div>
+          <div class="form-row">
+            <label class="form-label">PowerShell Executable</label>
+            <input id="cfg_ps" class="input" value="powershell.exe" />
+          </div>
+          <div class="form-row">
+            <label class="form-label">Node.js Executable</label>
+            <input id="cfg_node" class="input" value="node" />
+          </div>
+          <div class="form-row">
+            <label class="form-label">Default Working Directory</label>
+            <input id="cfg_cwd" class="input" placeholder="e.g. C:\Users\You" />
+          </div>
+          <div class="form-row">
+            <label class="form-label">Browser CDP Endpoint</label>
+            <input id="cfg_cdp" class="input" value="http://127.0.0.1:9222" />
+          </div>
+          <div class="form-row">
+            <label class="form-label">Default SQLite Database Path</label>
+            <input id="cfg_sqlite" class="input" value="omniflow_user_data.db" />
+          </div>
+        </div>
+        <div>
+          <button class="btn btn-run" onclick="saveGlobalSettings()">💾 Save Persistent Settings</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<script>
+// ============================================================================
+// 1. AUTO-START PROTOCOL & ENGINE CONNECTION MANAGER
+// ============================================================================
+const ENGINE_URL = (window.location.protocol.startsWith("http") && window.location.port === "8765")
+  ? window.location.origin
+  : "http://127.0.0.1:8765";
+
+let engineConnected = false;
+let hostMetadata = {};
+let customTemplates = [];
+let savedWorkflows = [];
+let globalSettings = {
+  python_path: "python",
+  powershell_path: "powershell.exe",
+  node_path: "node",
+  default_working_dir: "",
+  default_cdp_url: "http://127.0.0.1:9222",
+  default_sqlite_path: "omniflow_user_data.db"
+};
+
+// Default workflow: 1-step bulletproof "Write Data to Notepad" (auto-launches Notepad if not open!)
+const STARTER_WORKFLOW = {
+  id: "wf_write_to_notepad",
+  name: "Write Data to Notepad",
+  description: "Auto-launches Windows Notepad if needed, focuses the editor, and writes text cleanly.",
+  variables: {
+    report_line: "OmniFlow v4.0 Verified: Data written cleanly to Notepad!"
+  },
+  nodes: [
+    {
+      id: "n_notepad_write",
+      name: "1. Write Text to Notepad",
+      category: "windows",
+      action: "win_type",
+      params: {
+        window_title: "Notepad",
+        text: "Hello from OmniFlow v4.0!\r\n{{variables.report_line}}",
+        auto_launch: true,
+        send_enter: true,
+        clear_existing: false
+      },
+      retry: 1,
+      timeout: 30,
+      position: { x: 140, y: 150 }
+    }
+  ],
+  edges: []
+};
+
+let workflow = loadActiveWorkflowFromLocal();
+let selectedNodeId = (workflow.nodes[0] && workflow.nodes[0].id) || null;
+let runtimeCtx = { variables: { ...(workflow.variables || {}) }, steps: {} };
+
+function loadActiveWorkflowFromLocal() {
+  try {
+    const raw = localStorage.getItem("omniflow_v4_active_wf");
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && Array.isArray(parsed.nodes)) return parsed;
+    }
+  } catch (_) {}
+  return JSON.parse(JSON.stringify(STARTER_WORKFLOW));
+}
+
+function saveActiveWorkflowToLocal() {
+  try {
+    localStorage.setItem("omniflow_v4_active_wf", JSON.stringify(workflow));
+  } catch (_) {}
+}
+
+async function pingEngine() {
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 900);
+    const resp = await fetch(`${ENGINE_URL}/api/health`, { signal: ctrl.signal });
+    clearTimeout(timer);
+    if (resp.ok) {
+      hostMetadata = await resp.json();
+      setEngineStatusUI(true);
+      return true;
+    }
+  } catch (_) {}
+  return false;
+}
+
+function setEngineStatusUI(online, starting = false) {
+  engineConnected = online;
+  const pill = document.getElementById("engineStatusPill");
+  const txt = document.getElementById("engineStatusText");
+  if (online) {
+    pill.className = "engine-pill online";
+    txt.textContent = `Server Online (${hostMetadata.platform || 'Local'})`;
+  } else if (starting) {
+    pill.className = "engine-pill starting";
+    txt.textContent = "Waking Local Server (omniflow://start)...";
+  } else {
+    pill.className = "engine-pill offline";
+    txt.textContent = "Server Offline — Click to Auto-Start";
+  }
+}
+
+function triggerProtocolWake() {
+  try {
+    const frame = document.getElementById("protocolLauncherFrame");
+    if (frame) frame.src = "omniflow://start";
+  } catch (_) {}
+}
+
+async function attemptAutoStartServer(SwitchToSettingsIfOffline = false) {
+  if (await pingEngine()) {
+    await syncStorageFromServer();
+    return true;
+  }
+
+  // Server not responding yet -> Fire `omniflow://start` custom URL protocol to start `omniflow_engine.py --daemon`!
+  setEngineStatusUI(false, true);
+  addLog("APP", "Local server not detected on 127.0.0.1:8765 — firing omniflow://start protocol to launch background server...");
+  triggerProtocolWake();
+
+  // Poll for up to 3.2 seconds for the background daemon to bind port 8765
+  for (let i = 0; i < 6; i++) {
+    await new Promise(r => setTimeout(r, 550));
+    if (await pingEngine()) {
+      addLog("APP", `✓ Local OmniFlow Server started and connected (${hostMetadata.platform} • Python ${hostMetadata.python}).`);
+      await syncStorageFromServer();
+      return true;
+    }
+  }
+
+  setEngineStatusUI(false, false);
+  addLog("ERROR", "Server is still offline. Run 'python omniflow_engine.py' once (or run OmniFlow_AutoStart.bat from Tab 4) to register the omniflow:// auto-start protocol.");
+  if (SwitchToSettingsIfOffline) {
+    switchTab('settings', document.querySelectorAll('.nav-tab')[3]);
+  }
+  return false;
+}
+
+async function syncStorageFromServer() {
+  try {
+    const [tRes, wRes, sRes] = await Promise.all([
+      fetch(`${ENGINE_URL}/api/templates`),
+      fetch(`${ENGINE_URL}/api/workflows`),
+      fetch(`${ENGINE_URL}/api/settings`)
+    ]);
+    if (tRes.ok) {
+      customTemplates = (await tRes.json()).templates || [];
+      localStorage.setItem("omniflow_v4_templates", JSON.stringify(customTemplates));
+    }
+    if (wRes.ok) {
+      savedWorkflows = (await wRes.json()).workflows || [];
+      localStorage.setItem("omniflow_v4_workflows", JSON.stringify(savedWorkflows));
+    }
+    if (sRes.ok) {
+      const s = (await sRes.json()).settings;
+      if (s) globalSettings = { ...globalSettings, ...s };
+    }
+    renderTemplatesToolbox();
+  } catch (_) {}
+}
+
+function loadCachedStorage() {
+  try {
+    const t = localStorage.getItem("omniflow_v4_templates");
+    if (t) customTemplates = JSON.parse(t);
+    const w = localStorage.getItem("omniflow_v4_workflows");
+    if (w) savedWorkflows = JSON.parse(w);
+  } catch (_) {}
+  renderTemplatesToolbox();
+}
+
+// ============================================================================
+// 2. GLITCH-FREE CANVAS, DRAGGING & LIVE WIRE DRAWING
+// ============================================================================
+let dragState = null; // { node, startMouseX, startMouseY, origX, origY }
+let wireState = null; // { sourceId, mouseX, mouseY }
+
+function renderCanvas() {
+  document.getElementById("wfNameInput").value = workflow.name || "Untitled Workflow";
+  renderNodesOnCanvas();
+  renderEdgesOnCanvas();
+  updateContextPanel();
+}
+
+function renderNodesOnCanvas() {
+  const container = document.getElementById("nodesContainer");
+  container.innerHTML = "";
+
+  workflow.nodes.forEach(node => {
+    const card = document.createElement("div");
+    card.className = "node-card" + (node.id === selectedNodeId ? " selected" : "");
+    if (node._runState) card.classList.add(node._runState);
+    card.id = "node_dom_" + node.id;
+    card.dataset.cat = node.category;
+    card.style.left = node.position.x + "px";
+    card.style.top = node.position.y + "px";
+
+    card.innerHTML = `
+      <div class="port port-in" title="Click or drop wire here to connect input" data-port="in" data-node="${node.id}"></div>
+      <div class="node-head">
+        <span>${esc(node.category)}</span>
+        <span>${esc(node.action)}</span>
+      </div>
+      <div class="node-body">
+        <div class="node-title" id="title_dom_${node.id}">${esc(node.name)}</div>
+        <div class="node-sub" id="sub_dom_${node.id}">${esc(getStepSummaryText(node))}</div>
+        <div class="node-badge-status" id="status_dom_${node.id}">${esc(node._statusText || "")}</div>
+      </div>
+      <div class="port port-out ${wireState && wireState.sourceId === node.id ? 'wiring' : ''}" title="Click to start linking to another step" data-port="out" data-node="${node.id}"></div>
+    `;
+
+    card.addEventListener("mousedown", (e) => {
+      const portType = e.target.getAttribute("data-port");
+      if (portType) {
+        e.stopPropagation();
+        onPortClicked(node.id, portType, e);
+        return;
+      }
+      const prevSelected = selectedNodeId;
+      selectedNodeId = node.id;
+
+      // Update selection highlight without destroying DOM!
+      document.querySelectorAll(".node-card").forEach(el => el.classList.remove("selected"));
+      card.classList.add("selected");
+
+      if (prevSelected !== selectedNodeId) {
+        populateInspectorForSelectedNode();
+      }
+
+      dragState = {
+        node,
+        startMouseX: e.clientX,
+        startMouseY: e.clientY,
+        origX: node.position.x,
+        origY: node.position.y
+      };
+    });
+
+    container.appendChild(card);
+  });
+}
+
+function getStepSummaryText(node) {
+  const p = node.params || {};
+  if (node.action === "win_type") return `To "${p.window_title || 'Notepad'}": "${(p.text || '').substring(0, 24)}"`;
+  if (node.action === "win_launch") return `Open: ${p.executable || 'notepad.exe'}`;
+  if (node.action === "win_click") return p.selector ? `UIA: ${p.selector}` : `Click (${p.x || 0}, ${p.y || 0})`;
+  if (node.action.startsWith("script_")) {
+    const first = (p.code || "").split("\n").find(l => l.trim() && !l.trim().startsWith("#") && !l.trim().startsWith("//"));
+    return first ? first.trim() : node.action;
+  }
+  const keys = Object.keys(p);
+  return keys.length ? `${keys[0]}: ${JSON.stringify(p[keys[0]])}` : node.action;
+}
+
+function renderEdgesOnCanvas() {
+  const svg = document.getElementById("edgeSvg");
+  svg.innerHTML = "";
+
+  workflow.edges.forEach(edge => {
+    const src = workflow.nodes.find(n => n.id === edge.source);
+    const tgt = workflow.nodes.find(n => n.id === edge.target);
+    if (!src || !tgt) return;
+
+    const x1 = src.position.x + 240;
+    const y1 = src.position.y + 42;
+    const x2 = tgt.position.x;
+    const y2 = tgt.position.y + 42;
+    const dx = Math.max(60, Math.abs(x2 - x1) * 0.45);
+
+    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    path.setAttribute("d", `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`);
+    path.setAttribute("class", "edge-line");
+    path.addEventListener("click", () => {
+      workflow.edges = workflow.edges.filter(ed => ed.id !== edge.id);
+      renderEdgesOnCanvas();
+      saveActiveWorkflowToLocal();
+    });
+    svg.appendChild(path);
+  });
+
+  if (wireState) {
+    const src = workflow.nodes.find(n => n.id === wireState.sourceId);
+    if (src) {
+      const x1 = src.position.x + 240;
+      const y1 = src.position.y + 42;
+      const x2 = wireState.mouseX;
+      const y2 = wireState.mouseY;
+      const dx = Math.max(50, Math.abs(x2 - x1) * 0.45);
+      const tempPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      tempPath.setAttribute("d", `M ${x1} ${y1} C ${x1 + dx} ${y1}, ${x2 - dx} ${y2}, ${x2} ${y2}`);
+      tempPath.setAttribute("class", "edge-line temp-wire");
+      svg.appendChild(tempPath);
+    }
+  }
+}
+
+window.addEventListener("mousemove", (e) => {
+  if (dragState) {
+    const dx = e.clientX - dragState.startMouseX;
+    const dy = e.clientY - dragState.startMouseY;
+    dragState.node.position.x = Math.max(12, Math.round(dragState.origX + dx));
+    dragState.node.position.y = Math.max(12, Math.round(dragState.origY + dy));
+    const el = document.getElementById("node_dom_" + dragState.node.id);
+    if (el) {
+      el.style.left = dragState.node.position.x + "px";
+      el.style.top = dragState.node.position.y + "px";
+    }
+    renderEdgesOnCanvas();
+  } else if (wireState) {
+    const surfRect = document.getElementById("canvasSurface").getBoundingClientRect();
+    wireState.mouseX = e.clientX - surfRect.left;
+    wireState.mouseY = e.clientY - surfRect.top;
+    renderEdgesOnCanvas();
+  }
+});
+
+window.addEventListener("mouseup", () => {
+  if (dragState) {
+    dragState = null;
+    saveActiveWorkflowToLocal();
+  }
+});
+
+function onPortClicked(nodeId, portType, e) {
+  const surfRect = document.getElementById("canvasSurface").getBoundingClientRect();
+  if (portType === "out") {
+    if (wireState && wireState.sourceId === nodeId) {
+      wireState = null;
+    } else {
+      wireState = { sourceId: nodeId, mouseX: e.clientX - surfRect.left, mouseY: e.clientY - surfRect.top };
+    }
+    renderNodesOnCanvas();
+    renderEdgesOnCanvas();
+  } else if (portType === "in" && wireState && wireState.sourceId !== nodeId) {
+    const dup = workflow.edges.some(ed => ed.source === wireState.sourceId && ed.target === nodeId);
+    if (!dup) {
+      workflow.edges.push({ id: "e_" + Date.now(), source: wireState.sourceId, target: nodeId });
+    }
+    wireState = null;
+    renderNodesOnCanvas();
+    renderEdgesOnCanvas();
+    saveActiveWorkflowToLocal();
+  }
+}
+
+// ============================================================================
+// 3. GLITCH-FREE STEP INSPECTOR (NEVER DESTROYS INPUT FOCUS WHILE TYPING!)
+// ============================================================================
+function populateInspectorForSelectedNode() {
+  const node = workflow.nodes.find(n => n.id === selectedNodeId);
+  const box = document.getElementById("dedicatedFieldsBox");
+  if (!node) {
+    document.getElementById("inspStepIdBadge").textContent = "None";
+    document.getElementById("inspStepName").value = "";
+    document.getElementById("inspRawJson").value = "{}";
+    box.innerHTML = `<div style="font-size:12px;color:var(--text-muted);">Select or add a step on the canvas.</div>`;
+    return;
+  }
+
+  document.getElementById("inspStepIdBadge").textContent = node.id;
+  document.getElementById("inspStepName").value = node.name;
+  document.getElementById("inspStepCategory").value = node.category;
+  document.getElementById("inspStepAction").value = node.action;
+  document.getElementById("inspRawJson").value = JSON.stringify(node.params || {}, null, 2);
+
+  buildDedicatedFormControls(node, box);
+}
+
+function buildDedicatedFormControls(node, box) {
+  const p = node.params || {};
+  const act = node.action;
+
+  if (act === "win_type") {
+    box.innerHTML = `
+      <div class="form-row">
+        <label class="form-label">Target Window Title (e.g. Notepad)</label>
+        <input class="input" type="text" value="${esc(p.window_title !== undefined ? p.window_title : 'Notepad')}" oninput="updateParamInPlace('window_title', this.value)" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Text to Write into Window (Supports {{variables.x}})</label>
+        <textarea class="textarea" style="min-height:110px;" oninput="updateParamInPlace('text', this.value)" placeholder="Type the text you want written into Notepad...">${esc(p.text || '')}</textarea>
+      </div>
+      <label class="checkbox-row">
+        <input type="checkbox" ${p.auto_launch !== false ? 'checked' : ''} onchange="updateParamInPlace('auto_launch', this.checked)" />
+        <span>Auto-launch application (e.g. notepad.exe) if window is not open yet</span>
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" ${p.send_enter !== false ? 'checked' : ''} onchange="updateParamInPlace('send_enter', this.checked)" />
+        <span>Append Newline (Enter) at the end</span>
+      </label>
+      <label class="checkbox-row">
+        <input type="checkbox" ${p.clear_existing === true ? 'checked' : ''} onchange="updateParamInPlace('clear_existing', this.checked)" />
+        <span>Replace existing text in Notepad instead of appending</span>
+      </label>
+    `;
+  } else if (act === "win_launch") {
+    box.innerHTML = `
+      <div class="form-row">
+        <label class="form-label">Executable Name or Full Path (.exe)</label>
+        <input class="input" type="text" value="${esc(p.executable || 'notepad.exe')}" oninput="updateParamInPlace('executable', this.value)" placeholder="e.g. notepad.exe, calc.exe, mspaint.exe" />
+      </div>
+      <div class="form-row">
+        <label class="form-label">Arguments (Optional)</label>
+        <input class="input" type="text" value="${esc(Array.isArray(p.args) ? p.args.join(' ') : (p.args || ''))}" oninput="updateParamInPlace('args', this.value)" placeholder="e.g. C:\\file.txt" />
+      </div>
+    `;
+  } else if (act === "win_find_window") {
+    box.innerHTML = `
+      <div class="form-row">
+        <label class="form-label">Window Title Contains</label>
+        <input class="input" type="text" value="${esc(p.title || 'Notepad')}" oninput="updateParamInPlace('title', this.value)" />
+      </div>
+      <label class="checkbox-row">
+        <input type="checkbox" ${p.bring_to_front !== false ? 'checked' : ''} onchange="updateParamInPlace('bring_to_front', this.checked)" />
+        <span>Force window to foreground</span>
+      </label>
+    `;
+  } else if (act === "win_click") {
+    box.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="form-row">
+          <label class="form-label">Screen X</label>
+          <input class="input" type="number" value="${p.x !== undefined ? p.x : 500}" oninput="updateParamInPlace('x', Number(this.value))" />
+        </div>
+        <div class="form-row">
+          <label class="form-label">Screen Y</label>
+          <input class="input" type="number" value="${p.y !== undefined ? p.y : 350}" oninput="updateParamInPlace('y', Number(this.value))" />
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Or UIA Control Name (Optional)</label>
+        <input class="input" type="text" value="${esc(p.selector || '')}" oninput="updateParamInPlace('selector', this.value)" />
+      </div>
+    `;
+  } else if (act === "win_clipboard") {
+    box.innerHTML = `
+      <div class="form-row">
+        <label class="form-label">Operation</label>
+        <select class="select" onchange="updateParamInPlace('operation', this.value)">
+          <option value="write" ${p.operation !== 'read' ? 'selected' : ''}>Copy Text to Clipboard (write)</option>
+          <option value="read" ${p.operation === 'read' ? 'selected' : ''}>Read Clipboard into Variable (read)</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Text to Copy (for write)</label>
+        <input class="input" type="text" value="${esc(p.text || '')}" oninput="updateParamInPlace('text', this.value)" />
+      </div>
+    `;
+  } else if (act.startsWith("script_")) {
+    const lang = act.replace("script_", "").toUpperCase();
+    box.innerHTML = `
+      <div class="form-row">
+        <label class="form-label">
+          <span>${lang} Code Editor</span>
+          <span style="color:var(--blue);cursor:pointer;" onclick="appendExportSnippet()">+ Insert Variable Export</span>
+        </label>
+        <textarea id="polyglotCodeArea" class="textarea textarea-code" spellcheck="false" oninput="updateParamInPlace('code', this.value)">${esc(p.code || '')}</textarea>
+      </div>
+    `;
+  } else if (act === "browser_navigate") {
+    box.innerHTML = `
+      <div class="form-row">
+        <label class="form-label">URL to Open</label>
+        <input class="input" type="text" value="${esc(p.url || 'https://example.com')}" oninput="updateParamInPlace('url', this.value)" />
+      </div>
+    `;
+  } else if (act === "db_query") {
+    box.innerHTML = `
+      <div class="form-row">
+        <label class="form-label">SQL Query (SQLite / ODBC)</label>
+        <textarea class="textarea textarea-code" style="min-height:110px;" oninput="updateParamInPlace('sql', this.value)">${esc(p.sql || 'SELECT 1 AS ok;')}</textarea>
+      </div>
+      <div class="form-row">
+        <label class="form-label">Export Rows to Variable Name</label>
+        <input class="input" type="text" value="${esc(p.export_var || 'db_rows')}" oninput="updateParamInPlace('export_var', this.value)" />
+      </div>
+    `;
+  } else {
+    box.innerHTML = `<div style="font-size:11.5px;color:var(--text-secondary);">Configure parameters in the JSON box below.</div>`;
+  }
+}
+
+// Updates node parameter in-memory and updates ONLY the card subtitle & raw JSON box (NEVER destroys active input!)
+function updateParamInPlace(key, val) {
+  const node = workflow.nodes.find(n => n.id === selectedNodeId);
+  if (!node) return;
+  if (!node.params) node.params = {};
+  node.params[key] = val;
+
+  const subEl = document.getElementById("sub_dom_" + node.id);
+  if (subEl) subEl.textContent = getStepSummaryText(node);
+
+  const rawEl = document.getElementById("inspRawJson");
+  if (rawEl && document.activeElement !== rawEl) {
+    rawEl.value = JSON.stringify(node.params, null, 2);
+  }
+  saveActiveWorkflowToLocal();
+}
+
+function onStepTitleEdited(newTitle) {
+  const node = workflow.nodes.find(n => n.id === selectedNodeId);
+  if (!node) return;
+  node.name = newTitle;
+  const titleEl = document.getElementById("title_dom_" + node.id);
+  if (titleEl) titleEl.textContent = newTitle;
+  saveActiveWorkflowToLocal();
+}
+
+function onWorkflowNameEdited(val) {
+  workflow.name = val;
+  saveActiveWorkflowToLocal();
+}
+
+function onStepCategoryChanged(newCat) {
+  const node = workflow.nodes.find(n => n.id === selectedNodeId);
+  if (!node) return;
+  node.category = newCat;
+  renderNodesOnCanvas();
+  saveActiveWorkflowToLocal();
+}
+
+function onStepActionChanged(newAction) {
+  const node = workflow.nodes.find(n => n.id === selectedNodeId);
+  if (!node) return;
+  node.action = newAction;
+  node.params = getDefaultStepParams(newAction);
+  renderNodesOnCanvas();
+  populateInspectorForSelectedNode();
+  saveActiveWorkflowToLocal();
+}
+
+function onRawJsonEdited(rawText) {
+  const node = workflow.nodes.find(n => n.id === selectedNodeId);
+  if (!node) return;
+  try {
+    node.params = JSON.parse(rawText);
+    const subEl = document.getElementById("sub_dom_" + node.id);
+    if (subEl) subEl.textContent = getStepSummaryText(node);
+    buildDedicatedFormControls(node, document.getElementById("dedicatedFieldsBox"));
+    saveActiveWorkflowToLocal();
+  } catch (_) {}
+}
+
+function appendExportSnippet() {
+  const node = workflow.nodes.find(n => n.id === selectedNodeId);
+  if (!node) return;
+  const area = document.getElementById("polyglotCodeArea");
+  if (!area) return;
+  if (node.action === "script_python") area.value += "\nomniflow_set('my_var', 'hello_from_python')";
+  else if (node.action === "script_powershell") area.value += "\nSet-OmniFlowVar 'my_var' 'hello_from_powershell'";
+  else if (node.action === "script_javascript") area.value += "\nomniflow_set('my_var', 'hello_from_node');";
+  updateParamInPlace("code", area.value);
+}
+
+function addStep(category, action, title) {
+  const id = "n_" + Math.random().toString(36).substring(2, 7);
+  const newNode = {
+    id,
+    name: `${workflow.nodes.length + 1}. ${title}`,
+    category,
+    action,
+    params: getDefaultStepParams(action),
+    retry: 1,
+    timeout: 60,
+    position: {
+      x: 120 + (workflow.nodes.length * 75) % 680,
+      y: 120 + (workflow.nodes.length * 55) % 320
+    }
+  };
+  workflow.nodes.push(newNode);
+  if (selectedNodeId) {
+    workflow.edges.push({ id: "e_" + Date.now(), source: selectedNodeId, target: id });
+  }
+  selectedNodeId = id;
+  renderCanvas();
+  populateInspectorForSelectedNode();
+  saveActiveWorkflowToLocal();
+}
+
+function getDefaultStepParams(action) {
+  switch (action) {
+    case "win_type": return { window_title: "Notepad", text: "Hello from OmniFlow v4.0!", auto_launch: true, send_enter: true, clear_existing: false };
+    case "win_launch": return { executable: "notepad.exe", args: [], wait: false, export_var: "launched_pid" };
+    case "win_find_window": return { title: "Notepad", bring_to_front: true };
+    case "win_click": return { x: 500, y: 350, button: "left", double: false, selector: "" };
+    case "win_clipboard": return { operation: "write", text: "Copied by OmniFlow" };
+    case "win_registry": return { operation: "write", key_path: "HKCU\\Software\\OmniFlow", value_name: "LastRun", value_data: "OK" };
+    case "win_service": return { service_name: "Spooler", operation: "status" };
+    case "win_schedule_task": return { operation: "create", task_name: "\\OmniFlow\\AutomatedJob", schedule_type: "DAILY", start_time: "09:00" };
+    case "script_python": return { code: "# Python 3 Step\nprint('Variables:', ctx['variables'])\nomniflow_set('py_result', 'OK')" };
+    case "script_powershell": return { code: "# PowerShell Step\nWrite-Output 'Running PowerShell'\nSet-OmniFlowVar 'ps_result' 'OK'" };
+    case "script_javascript": return { code: "// Node.js Step\nconsole.log('Running Node.js');\nomniflow_set('js_result', 'OK');" };
+    case "script_batch": return { code: "echo Running Batch Step\necho ##OMNIFLOW_SET:bat_result=OK##" };
+    case "browser_navigate": return { url: "https://example.com", open_system_browser: true };
+    case "vision_find_image": return { target_x: 640, target_y: 420, threshold: 0.85, export_prefix: "btn" };
+    case "vision_ocr_extract": return { region: { x: 100, y: 100, width: 400, height: 120 }, export_var: "ocr_text" };
+    case "db_query": return { driver: "sqlite", export_var: "db_rows", sql: "CREATE TABLE IF NOT EXISTS notes (id INTEGER PRIMARY KEY, msg TEXT); INSERT INTO notes (msg) VALUES ('Saved row'); SELECT * FROM notes;" };
+    default: return {};
+  }
+}
+
+function deleteSelectedStep() {
+  if (!selectedNodeId) return;
+  workflow.nodes = workflow.nodes.filter(n => n.id !== selectedNodeId);
+  workflow.edges = workflow.edges.filter(e => e.source !== selectedNodeId && e.target !== selectedNodeId);
+  selectedNodeId = workflow.nodes[0] ? workflow.nodes[0].id : null;
+  renderCanvas();
+  populateInspectorForSelectedNode();
+  saveActiveWorkflowToLocal();
+}
+
+// ============================================================================
+// 4. REAL HOST EXECUTION (SINGLE STEP & FULL WORKFLOW)
+// ============================================================================
+async function runSelectedStepOnly() {
+  const node = workflow.nodes.find(n => n.id === selectedNodeId);
+  if (!node) return;
+
+  const btn = document.getElementById("runStepBtn");
+  btn.disabled = true;
+  btn.textContent = "⏳ Executing on Host...";
+  setNodeVisualStatus(node.id, "running", "⏳ Executing...");
+
+  const ready = await attemptAutoStartServer(true);
+  if (!ready) {
+    setNodeVisualStatus(node.id, "failed", "✗ Server Offline");
+    btn.disabled = false;
+    btn.textContent = "▶ Run This Step Now";
+    return;
+  }
+
+  try {
+    const resp = await fetch(`${ENGINE_URL}/api/run-node`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        node,
+        variables: runtimeCtx.variables,
+        steps: runtimeCtx.steps
+      })
+    });
+    const res = await resp.json();
+    if (!resp.ok || res.status === "failed") {
+      setNodeVisualStatus(node.id, "failed", `✗ ${res.error || 'Failed'}`);
+      addLog("ERROR", `[${node.name}] Failed: ${res.error}`);
+    } else {
+      setNodeVisualStatus(node.id, "completed", `✓ Done (${res.duration_ms} ms)`);
+      runtimeCtx.variables = res.variables || runtimeCtx.variables;
+      runtimeCtx.steps = res.steps || runtimeCtx.steps;
+      updateContextPanel();
+      addLog("WIN32", `✓ [${node.name}] Completed in ${res.duration_ms} ms → ${JSON.stringify(res.output)}`);
+    }
+  } catch (err) {
+    setNodeVisualStatus(node.id, "failed", "✗ Connection Error");
+    addLog("ERROR", `Request error: ${err.message}`);
+  }
+
+  btn.disabled = false;
+  btn.textContent = "▶ Run This Step Now";
+}
+
+async function runFullWorkflow() {
+  if (workflow.nodes.length === 0) return;
+  const btn = document.getElementById("runWorkflowBtn");
+  btn.disabled = true;
+  btn.textContent = "⏳ Running Workflow...";
+
+  workflow.nodes.forEach(n => setNodeVisualStatus(n.id, "running", "⏳ Queued..."));
+
+  const ready = await attemptAutoStartServer(true);
+  if (!ready) {
+    workflow.nodes.forEach(n => setNodeVisualStatus(n.id, "failed", "✗ Server Offline"));
+    btn.disabled = false;
+    btn.textContent = "▶ Run Full Workflow";
+    return;
+  }
+
+  try {
+    const resp = await fetch(`${ENGINE_URL}/api/run-workflow`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(workflow)
+    });
+    const res = await resp.json();
+    runtimeCtx.variables = res.variables || {};
+    runtimeCtx.steps = res.steps || {};
+    updateContextPanel();
+
+    workflow.nodes.forEach(n => {
+      const st = runtimeCtx.steps[n.id];
+      if (!st) setNodeVisualStatus(n.id, "", "Skipped");
+      else if (st.status === "success") setNodeVisualStatus(n.id, "completed", `✓ Done (${st.duration_ms} ms)`);
+      else setNodeVisualStatus(n.id, "failed", `✗ ${st.error || 'Failed'}`);
+    });
+
+    (res.logs || []).forEach(l => {
+      if (l.status === "success") addLog("APP", `✓ ${l.name} (${l.action}) → ${l.duration_ms} ms`);
+      else addLog("ERROR", `✗ ${l.name}: ${l.error}`);
+    });
+  } catch (err) {
+    addLog("ERROR", `Workflow execution failed: ${err.message}`);
+  }
+
+  btn.disabled = false;
+  btn.textContent = "▶ Run Full Workflow";
+}
+
+function setNodeVisualStatus(nodeId, stateClass, text) {
+  const node = workflow.nodes.find(n => n.id === nodeId);
+  if (node) {
+    node._runState = stateClass;
+    node._statusText = text;
+  }
+  const card = document.getElementById("node_dom_" + nodeId);
+  const badge = document.getElementById("status_dom_" + nodeId);
+  if (card) {
+    card.classList.remove("running", "completed", "failed");
+    if (stateClass) card.classList.add(stateClass);
+  }
+  if (badge) badge.textContent = text;
+}
+
+// ============================================================================
+// 5. PERSISTENT WORKFLOWS, CUSTOM TEMPLATES & 1-CLICK AUTO-START BAT GENERATOR
+// ============================================================================
+function createBlankWorkflow() {
+  workflow = {
+    id: "wf_" + Math.random().toString(36).substring(2, 8),
+    name: "New Automation Workflow",
+    description: "",
+    variables: {},
+    nodes: [],
+    edges: []
+  };
+  selectedNodeId = null;
+  runtimeCtx = { variables: {}, steps: {} };
+  renderCanvas();
+  populateInspectorForSelectedNode();
+  saveActiveWorkflowToLocal();
+}
+
+async function saveWorkflowToStorage() {
+  workflow.name = document.getElementById("wfNameInput").value || "Untitled Workflow";
+  saveActiveWorkflowToLocal();
+
+  const entry = {
+    id: workflow.id,
+    name: workflow.name,
+    updated_at: new Date().toISOString(),
+    node_count: workflow.nodes.length,
+    workflow: JSON.parse(JSON.stringify(workflow))
+  };
+  const idx = savedWorkflows.findIndex(w => w.id === workflow.id);
+  if (idx >= 0) savedWorkflows[idx] = entry;
+  else savedWorkflows.unshift(entry);
+  localStorage.setItem("omniflow_v4_workflows", JSON.stringify(savedWorkflows));
+
+  if (engineConnected) {
+    try {
+      await fetch(`${ENGINE_URL}/api/workflows`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(workflow)
+      });
+    } catch (_) {}
+  }
+  addLog("APP", `💾 Saved workflow "${workflow.name}" to persistent storage.`);
+}
+
+async function saveCurrentStepAsTemplate() {
+  const node = workflow.nodes.find(n => n.id === selectedNodeId);
+  if (!node) return;
+  const tmpl = {
+    id: "tmpl_" + Math.random().toString(36).substring(2, 8),
+    name: node.name.replace(/^\d+\.\s*/, ""),
+    kind: "node",
+    category: node.category,
+    description: `${node.action} reusable step`,
+    data: {
+      category: node.category,
+      action: node.action,
+      params: JSON.parse(JSON.stringify(node.params || {}))
+    }
+  };
+  customTemplates.unshift(tmpl);
+  localStorage.setItem("omniflow_v4_templates", JSON.stringify(customTemplates));
+  if (engineConnected) {
+    try {
+      await fetch(`${ENGINE_URL}/api/templates`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(tmpl)
+      });
+    } catch (_) {}
+  }
+  renderTemplatesToolbox();
+  addLog("APP", `★ Saved step "${tmpl.name}" to My Saved Templates.`);
+}
+
+async function saveEntireWorkflowAsTemplate() {
+  const tmpl = {
+    id: "tmpl_wf_" + Math.random().toString(36).substring(2, 8),
+    name: workflow.name || "Saved Workflow Template",
+    kind: "workflow",
+    category: "windows",
+    description: `${workflow.nodes.length} steps workflow template`,
+    data: JSON.parse(JSON.stringify(workflow))
+  };
+  customTemplates.unshift(tmpl);
+  localStorage.setItem("omniflow_v4_templates", JSON.stringify(customTemplates));
+  if (engineConnected) {
+    try {
+      await fetch(`${ENGINE_URL}/api/templates`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(tmpl)
+      });
+    } catch (_) {}
+  }
+  renderTemplatesToolbox();
+  renderLibraryTab();
+}
+
+function renderTemplatesToolbox() {
+  const box = document.getElementById("savedTemplatesToolbox");
+  if (!customTemplates.length) {
+    box.innerHTML = `<div style="font-size:11px;color:var(--text-muted);">No custom templates yet. Click "+ Save Step" to pin any configured step here.</div>`;
+    return;
+  }
+  box.innerHTML = customTemplates.map(t => `
+    <div class="tool-card" data-cat="${esc(t.category || 'windows')}" onclick="insertSavedTemplate('${t.id}')">
+      <div class="tool-title">
+        <span>★ ${esc(t.name)}</span>
+        <span class="tag" onclick="removeSavedTemplate(event, '${t.id}')" style="color:var(--rose);">✕</span>
+      </div>
+      <div class="tool-desc">${esc(t.description || t.kind)}</div>
+    </div>
+  `).join("");
+}
+
+function insertSavedTemplate(id) {
+  const t = customTemplates.find(x => x.id === id);
+  if (!t) return;
+  if (t.kind === "workflow" && t.data && t.data.nodes) {
+    workflow = JSON.parse(JSON.stringify(t.data));
+    workflow.id = "wf_" + Math.random().toString(36).substring(2, 8);
+    selectedNodeId = (workflow.nodes[0] && workflow.nodes[0].id) || null;
+    renderCanvas();
+    populateInspectorForSelectedNode();
+    switchTab('builder', document.querySelectorAll('.nav-tab')[0]);
+    return;
+  }
+  const d = t.data || {};
+  addStep(d.category || "windows", d.action || "win_type", t.name);
+  const newest = workflow.nodes[workflow.nodes.length - 1];
+  newest.params = JSON.parse(JSON.stringify(d.params || {}));
+  renderCanvas();
+  populateInspectorForSelectedNode();
+}
+
+async function removeSavedTemplate(e, id) {
+  if (e) e.stopPropagation();
+  customTemplates = customTemplates.filter(x => x.id !== id);
+  localStorage.setItem("omniflow_v4_templates", JSON.stringify(customTemplates));
+  if (engineConnected) {
+    try { await fetch(`${ENGINE_URL}/api/templates?id=${encodeURIComponent(id)}`, { method: "DELETE" }); } catch (_) {}
+  }
+  renderTemplatesToolbox();
+  renderLibraryTab();
+}
+
+function renderLibraryTab() {
+  const wfBox = document.getElementById("savedWorkflowsContainer");
+  wfBox.innerHTML = savedWorkflows.length === 0
+    ? `<div style="font-size:12px;color:var(--text-muted);">No saved workflows yet. Click "💾 Save Workflow" to store your active workflow.</div>`
+    : savedWorkflows.map(w => `
+        <div class="list-row">
+          <div>
+            <div style="font-weight:700;font-size:13.5px;">${esc(w.name)}</div>
+            <div style="font-size:11.5px;color:var(--text-secondary);">${w.node_count || 0} steps • Saved ${new Date(w.updated_at).toLocaleString()}</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-run" onclick="loadWorkflowFromLibrary('${w.id}')">📂 Open in Builder</button>
+            <button class="btn btn-danger" onclick="deleteWorkflowFromLibrary('${w.id}')">🗑 Delete</button>
+          </div>
+        </div>
+      `).join("");
+
+  const tmplBox = document.getElementById("savedTemplatesContainer");
+  tmplBox.innerHTML = customTemplates.length === 0
+    ? `<div style="font-size:12px;color:var(--text-muted);">No custom templates saved yet.</div>`
+    : customTemplates.map(t => `
+        <div class="list-row">
+          <div>
+            <div style="font-weight:700;font-size:13.5px;">★ ${esc(t.name)} <span class="tag">${esc(t.kind)}</span></div>
+            <div style="font-size:11.5px;color:var(--text-secondary);">${esc(t.description || '')}</div>
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-indigo" onclick="insertSavedTemplate('${t.id}')">＋ Insert into Builder</button>
+            <button class="btn btn-danger" onclick="removeSavedTemplate(null, '${t.id}')">🗑 Delete</button>
+          </div>
+        </div>
+      `).join("");
+}
+
+function loadWorkflowFromLibrary(id) {
+  const found = savedWorkflows.find(w => w.id === id);
+  if (!found || !found.workflow) return;
+  workflow = JSON.parse(JSON.stringify(found.workflow));
+  selectedNodeId = (workflow.nodes[0] && workflow.nodes[0].id) || null;
+  runtimeCtx = { variables: { ...(workflow.variables || {}) }, steps: {} };
+  renderCanvas();
+  populateInspectorForSelectedNode();
+  switchTab('builder', document.querySelectorAll('.nav-tab')[0]);
+}
+
+async function deleteWorkflowFromLibrary(id) {
+  savedWorkflows = savedWorkflows.filter(w => w.id !== id);
+  localStorage.setItem("omniflow_v4_workflows", JSON.stringify(savedWorkflows));
+  if (engineConnected) {
+    try { await fetch(`${ENGINE_URL}/api/workflows?id=${encodeURIComponent(id)}`, { method: "DELETE" }); } catch (_) {}
+  }
+  renderLibraryTab();
+}
+
+function downloadOneClickAutoStartBat() {
+  const batContent = [
+    "@echo off",
+    "title OmniFlow v4.0 Auto-Start Installer & Launcher",
+    "cd /d \"%~dp0\"",
+    "echo Registering omniflow:// URL Protocol and Windows Startup Background Daemon...",
+    "python omniflow_engine.py --install-autostart",
+    "echo Starting OmniFlow Background Server...",
+    "start \"\" pythonw omniflow_engine.py --daemon",
+    "timeout /t 2 >nul",
+    "start \"\" \"http://127.0.0.1:8765\"",
+    "echo Done! Whenever you open omniflow_studio.html, the server will now start automatically.",
+    "pause"
+  ].join("\r\n");
+
+  const blob = new Blob([batContent], { type: "text/plain;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "OmniFlow_AutoStart.bat";
+  a.click();
+}
+
+// ============================================================================
+// 6. WIN32 SPY & SETTINGS TABS
+// ============================================================================
+async function refreshWin32WindowList() {
+  const box = document.getElementById("win32WindowsList");
+  if (!engineConnected) {
+    box.innerHTML = `<div style="font-size:12px;color:var(--rose);">Connect to local server first to list open Windows applications.</div>`;
+    return;
+  }
+  try {
+    const resp = await fetch(`${ENGINE_URL}/api/windows-list`);
+    const data = await resp.json();
+    const wins = data.windows || [];
+    box.innerHTML = wins.length === 0
+      ? `<div style="font-size:12px;color:var(--text-muted);">No visible Win32 windows returned on ${hostMetadata.platform}.</div>`
+      : wins.map(w => `
+          <div class="list-row">
+            <div>
+              <div style="font-weight:700;font-size:13px;">${esc(w.title)}</div>
+              <div style="font-size:11px;font-family:var(--font-mono);color:var(--text-secondary);">HWND: ${w.hwnd} • Class: ${esc(w.class_name)} • PID: ${w.pid}</div>
+            </div>
+            <button class="btn btn-indigo" onclick="applyWindowTitleToStep('${esc(w.title)}')">Use in Selected Step</button>
+          </div>
+        `).join("");
+  } catch (_) {}
+}
+
+function applyWindowTitleToStep(title) {
+  const node = workflow.nodes.find(n => n.id === selectedNodeId);
+  if (node) {
+    if (node.action === "win_find_window") node.params.title = title;
+    else node.params.window_title = title;
+    renderCanvas();
+    populateInspectorForSelectedNode();
+    switchTab('builder', document.querySelectorAll('.nav-tab')[0]);
+  }
+}
+
+async function runMouseHoverSpy() {
+  if (!engineConnected) return;
+  const btn = document.getElementById("captureMouseBtn");
+  const out = document.getElementById("mouseSpyOutput");
+  btn.disabled = true;
+  btn.textContent = "⏳ Move mouse to target (2.5s)...";
+  try {
+    const resp = await fetch(`${ENGINE_URL}/api/inspect-cursor?delay=2.5`);
+    const d = await resp.json();
+    out.innerHTML = `Captured Coordinates: <b>X=${d.x}, Y=${d.y}</b> | HWND=${d.hwnd} | Window="${esc(d.title)}" | Class="${esc(d.class_name)}"`;
+  } catch (_) {}
+  btn.disabled = false;
+  btn.textContent = "🎯 Start 2.5s Mouse Capture";
+}
+
+async function saveGlobalSettings() {
+  globalSettings.python_path = document.getElementById("cfg_py").value.trim();
+  globalSettings.powershell_path = document.getElementById("cfg_ps").value.trim();
+  globalSettings.node_path = document.getElementById("cfg_node").value.trim();
+  globalSettings.default_working_dir = document.getElementById("cfg_cwd").value.trim();
+  globalSettings.default_cdp_url = document.getElementById("cfg_cdp").value.trim();
+  globalSettings.default_sqlite_path = document.getElementById("cfg_sqlite").value.trim();
+  if (engineConnected) {
+    try {
+      await fetch(`${ENGINE_URL}/api/settings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(globalSettings)
+      });
+    } catch (_) {}
+  }
+  addLog("APP", "⚙ Saved persistent global settings.");
+}
+
+// ============================================================================
+// 7. NAVIGATION & UTILITIES
+// ============================================================================
+function switchTab(tabId, btnEl) {
+  document.querySelectorAll(".view-pane").forEach(p => p.classList.remove("active"));
+  document.querySelectorAll(".nav-tab").forEach(b => b.classList.remove("active"));
+  document.getElementById("tab-" + tabId).classList.add("active");
+  if (btnEl) btnEl.classList.add("active");
+  if (tabId === "library") renderLibraryTab();
+  if (tabId === "spy") refreshWin32WindowList();
+}
+
+function downloadWorkflowJson() {
+  const blob = new Blob([JSON.stringify(workflow, null, 2)], { type: "application/json;charset=utf-8" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${(workflow.name || 'workflow').toLowerCase().replace(/[^a-z0-9]+/g, '_')}.omniflow.json`;
+  a.click();
+}
+
+function importWorkflowFile() {
+  const inp = document.createElement("input");
+  inp.type = "file";
+  inp.accept = ".json";
+  inp.onchange = (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    const r = new FileReader();
+    r.onload = (ev) => {
+      try {
+        workflow = JSON.parse(ev.target.result);
+        selectedNodeId = (workflow.nodes[0] && workflow.nodes[0].id) || null;
+        renderCanvas();
+        populateInspectorForSelectedNode();
+        switchTab('builder', document.querySelectorAll('.nav-tab')[0]);
+      } catch (err) {
+        alert("Invalid JSON file: " + err.message);
+      }
+    };
+    r.readAsText(f);
+  };
+  inp.click();
+}
+
+function addLog(tag, msg) {
+  const box = document.getElementById("logStream");
+  const div = document.createElement("div");
+  div.className = "log-item";
+  const color = tag === "ERROR" ? "#fda4af" : tag === "WIN32" ? "#7dd3fc" : "#6ee7b7";
+  div.innerHTML = `<span class="log-ts">${new Date().toLocaleTimeString()}</span><b style="color:${color};margin-right:6px;">[${esc(tag)}]</b><span>${esc(msg)}</span>`;
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+
+function updateContextPanel() {
+  document.getElementById("ctxJsonViewer").textContent = JSON.stringify(runtimeCtx.variables, null, 2);
+}
+
+function esc(s) {
+  return String(s === undefined || s === null ? "" : s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+// ============================================================================
+// INITIALIZE STUDIO & AUTO-START SERVER ON HTML OPEN
+// ============================================================================
+window.addEventListener("DOMContentLoaded", async () => {
+  loadCachedStorage();
+  renderCanvas();
+  populateInspectorForSelectedNode();
+  await attemptAutoStartServer(false);
+});
+</script>
+</body>
+</html>
